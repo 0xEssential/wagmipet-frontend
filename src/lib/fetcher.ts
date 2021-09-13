@@ -1,16 +1,24 @@
-import { BigNumber } from 'ethers'
-import { Wagmipet } from '@/contracts'
+import { BigNumber } from 'ethers';
 
-export const fetchPets = async (contract: Wagmipet, userAddress: string): Promise<Record<number, string>> => {
-	const userBalance = await contract.balanceOf(userAddress)
+import { Wagmipet } from '@/contracts';
 
-	return Object.fromEntries(
-		await Promise.all(
-			new Array(userBalance.toNumber()).fill(undefined).map(async (_, index) => {
-				const tokenIndex: BigNumber = await contract.tokenOfOwnerByIndex(userAddress, index)
+export const fetchPets = async (
+  contract: Wagmipet,
+  userAddress: string,
+): Promise<Record<number, string>> => {
+  console.warn('Fetching pets for ', contract.address);
+  const userBalance = await contract.balanceOf(userAddress);
 
-				return [tokenIndex.toNumber(), await contract.getName(tokenIndex)]
-			})
-		)
-	)
-}
+  return Object.fromEntries(
+    await Promise.all(
+      [...Array(userBalance.toNumber())].map(async (_, index) => {
+        const tokenIndex: BigNumber = await contract.tokenOfOwnerByIndex(
+          userAddress,
+          index,
+        );
+
+        return [tokenIndex.toNumber(), await contract.getName(tokenIndex)];
+      }),
+    ),
+  );
+};
